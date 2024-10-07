@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interesses</title>
+    <link rel="stylesheet" href="mini-projeto.css">
+</head>
+<body>
+    <header class="container">
+      <img src="https://lab365-admin.hml.sesisenai.org.br/javax.faces.resource/img/logo-lab.png">
+      <h2>Meus interesses</h2>
+      <br>
+      <input type='text' id='inserirTarefa' placeholder='Inserir nova tarefa' required>
+      <br>
+      <button onclick="adicionarTarefa()">Adicionar</button>
+    </header>
+
+    <main class="list">
+      <h3>Lista:</h3>
+      <ul id="novaTarefa"></ul>
+    
+      <button  onclick="limparTarefas()">Limpar lista</button>
+    </main>
+    
+    <footer>
+    <h3>Patrocinado</h3>
+    <p id="noticiaIBGE">Carregando...</p>
+    </footer>
+
+    <script>
+
+    window.onload = function() {
+      carregarTarefas()
+      noticiaIBGE()
+      setInterval(carregarTarefas, 1000)
+    }
+
+    function adicionarTarefa() {
+      const tarefaInput = document.getElementById("inserirTarefa")
+      const tarefa = tarefaInput.value.trim()
+
+    if(tarefa) {
+      const novaTarefa = document.getElementById("novaTarefa")
+      const li = document.createElement("li")
+      li.textContent = tarefa
+      novaTarefa.appendChild(li)
+      salvarTarefaLocal(tarefa)
+      tarefaInput.value = ''
+      } else {
+        alert("Insira uma tarefa válida!")
+      }
+    }
+
+    
+    function limparTarefas(){
+      const tarefa = document.getElementById("novaTarefa")
+      tarefa.innerHTML = ' '
+      localStorage.removeItem('tarefas')
+    }
+    
+    function salvarTarefaLocal(tarefa) {
+      let tarefas = JSON.parse(localStorage.getItem('tarefas')) || []
+      tarefas.push(tarefa)
+      localStorage.setItem('tarefas', JSON.stringify(tarefas))
+    }
+
+   function carregarTarefas() {
+    const tarefas = JSON.parse(localStorage.getItem('tarefas')) || []
+    const novaTarefa = document.getElementById("novaTarefa")
+    
+    novaTarefa.innerHTML = ''
+    
+    tarefas.forEach(tarefa => {
+      const li = document.createElement("li")
+      li.textContent = tarefa
+      novaTarefa.appendChild(li)
+    });
+  }
+
+    async function noticiaIBGE(){
+      try{
+        const response = await fetch("https://servicodados.ibge.gov.br/api/v3/noticias/?tipo=release")
+        const data = await response.json()
+        const noticia = data.items[0]
+      
+        if(noticia) {
+          const noticiaElement = document.getElementById("noticiaIBGE")
+          noticiaElement.textContent = `${noticia.titulo} - ${noticia.introducao}`
+        } else {
+          document.getElementById("noticiaIBGE").textContent = "Nenhuma notícia encontrada."
+        }
+      } catch (error) {
+        document.getElementById("noticiaIBGE").textContent = "Erro ao carregar notícia."
+        console.error("Erro ao buscar notícia do IBGE: ", error)
+      }
+    }
+    </script>
+</body>
+</html>
